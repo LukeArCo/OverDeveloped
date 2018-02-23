@@ -6,7 +6,8 @@ public class HelloThere : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        Debug.Log("Generaenobi!");
+
+        Debug.Log("AAA");
 	}
 	
 	// Update is called once per frame
