@@ -6,7 +6,7 @@ public class HelloThere : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        Debug.Log("General Kenobi!");
+        Debug.Log("Generaenobi!");
 	}
 	
 	// Update is called once per frame
