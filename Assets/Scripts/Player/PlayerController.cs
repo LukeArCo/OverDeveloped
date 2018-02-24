@@ -116,13 +116,10 @@ public class PlayerController : MonoBehaviour
         m_curState = GamePad.GetState(m_pIndex);
 
         Vector3 targetVelocity = new Vector3(0, 0, 0);
-<<<<<<< HEAD
 
         if (!m_inMenu && !m_stuned)
-=======
         
         if (!m_inMenu)
->>>>>>> fd26f62e81a28f09e7d084bfc68c8097df8e591c
         {
             targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
         }
@@ -309,7 +306,7 @@ public class PlayerController : MonoBehaviour
     {
         if(other.GetComponent<PlayerController>() != null)
         {
-            if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null) // You are an empty handed worker, they are a stealing fuckface
+			if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null && other.GetComponent<PlayerController>().GetItem() != null) // You are an empty handed worker, they are a stealing fuckface
             {
                 CanInteract("Steal!");
 
@@ -321,7 +318,6 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-<<<<<<< HEAD
 
     public void SwitchToStun()
     {
@@ -351,7 +347,4 @@ public class PlayerController : MonoBehaviour
     {
         
     }
-=======
-    
->>>>>>> fd26f62e81a28f09e7d084bfc68c8097df8e591c
 }
