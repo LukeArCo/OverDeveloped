@@ -19,6 +19,7 @@ public class Machine : MonoBehaviour {
     E_Status m_currentStatus;
     bool m_canInteract = false;
 
+
     // Use this for initialization
     void Start () {
         m_currentStatus = E_Status.e_working;

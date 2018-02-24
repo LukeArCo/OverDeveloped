@@ -144,6 +144,7 @@ public class PlayerController : MonoBehaviour
 
             if (m_curState.Buttons.X == 0) // Drop carried item
             {
+                m_console.GetComponent<Item>().SetIsProcessing(false);
                 m_console.GetComponent<Rigidbody>().useGravity = true;
                 m_console = null;
             }
@@ -176,4 +177,23 @@ public class PlayerController : MonoBehaviour
     }
 
     public int GetType() { return (int)m_playerType; }
+
+    // Swiping
+    private void OnTriggerStay(Collider other)
+    {
+        if(other.GetComponent<PlayerController>() != null)
+        {
+            if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null) // You are an empty handed worker, they are a stealing fuckface
+            {
+                CanInteract("Steal!");
+
+                if(m_isInteracting && m_console == null)
+                {
+                    m_console = other.GetComponent<PlayerController>().GetItem();
+                    other.GetComponent<PlayerController>().SetItem();
+                }
+            }
+        }
+    }
+
 }
