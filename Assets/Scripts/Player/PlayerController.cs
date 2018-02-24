@@ -46,6 +46,7 @@ public class PlayerController : MonoBehaviour
     GameObject m_console;
     bool m_isInteracting;
     int m_timer;
+    
 
     void Start()
     {

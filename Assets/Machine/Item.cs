@@ -10,6 +10,7 @@ public class Item : MonoBehaviour
     public E_Step m_nextStep;
 
     bool m_isProcessing = false;
+    float m_paintTimer;
 
     void Awake()
     {
@@ -25,7 +26,7 @@ public class Item : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if(m_nextStep == E_Step.s_complete && m_isProcessing && m_paintTimer > 0) { m_paintTimer -= Time.deltaTime; }
     }
 
     public int GetStep()
@@ -40,7 +41,7 @@ public class Item : MonoBehaviour
             m_nextStep++;
         }
         else if ((int)m_nextStep < 6) { m_nextStep = E_Step.s_colour; }
-        else { m_nextStep = E_Step.s_complete; }
+        else { m_nextStep = E_Step.s_complete; Debug.Log("IS COMPLETE!"); }
     }
 
     public void SetType(int _type)
@@ -84,6 +85,7 @@ public class Item : MonoBehaviour
 
     public bool IsProcessing() { return m_isProcessing; }
     public void SetIsProcessing(bool _isProcessing) { m_isProcessing = _isProcessing; }
-
+    public float GetPaintTime() { return m_paintTimer; }
+    public void SetPaintTime(float _time) { m_paintTimer = _time;  }
     
 }
