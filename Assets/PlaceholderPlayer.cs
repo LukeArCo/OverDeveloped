@@ -76,8 +76,10 @@ public class PlaceholderPlayer : MonoBehaviour {
         // MOVE ITEM
         if(console != null)
         {
+            float distance = (gameObject.GetComponent<Transform>().localScale.x * 0.5f)+ console.GetComponent<Transform>().localScale.x;
+
             console.GetComponent<Transform>().SetPositionAndRotation(gameObject.GetComponent<Transform>().position, Quaternion.Euler(gameObject.GetComponent<Transform>().eulerAngles));
-            console.GetComponent<Transform>().Translate(new Vector3(0, 0, 2));
+            console.GetComponent<Transform>().Translate(new Vector3(0, 0, distance));
 
             if(GamePad.GetState(pIndex).Buttons.X == 0)
             {
@@ -111,6 +113,12 @@ public class PlaceholderPlayer : MonoBehaviour {
         _console.GetComponent<Rigidbody>().useGravity = false;
         console = _console;
     }
+
+    public void SetItem()
+    {
+        console = null;
+    }
+
     public GameObject GetItem() { return console; }
 
 }
