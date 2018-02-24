@@ -46,6 +46,7 @@ public class PlayerController : MonoBehaviour
     float m_shovedTimer;
     Vector3 m_shoveVelocity;
 
+
     [Header("Components")]
     public Camera m_camera;
     public Rigidbody m_rigidBody;
@@ -115,12 +116,10 @@ public class PlayerController : MonoBehaviour
     {
         m_prevState = m_curState;
         m_curState = GamePad.GetState(m_pIndex);
-
-        Vector3 targetVelocity = new Vector3(0, 0, 0);
         
-        if (!m_inMenu&&!m_stuned)
+        if (!m_inMenu&&!m_stuned&&!m_shoved)
         {
-            targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
+            m_targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
         }
 
         if (m_stuned)
@@ -139,25 +138,25 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        targetVelocity = transform.TransformDirection(targetVelocity);
+        m_targetVelocity = transform.TransformDirection(m_targetVelocity);
 
         if (m_dashing)
         {
-            targetVelocity = m_lastDirection;
-            targetVelocity = transform.TransformDirection(targetVelocity);
-            targetVelocity *= m_dashSpeed;
+            m_targetVelocity = m_lastDirection;
+            m_targetVelocity = transform.TransformDirection(m_targetVelocity);
+            m_targetVelocity *= m_dashSpeed;
         }
         else
         {
-            m_lastDirection = targetVelocity;
-            targetVelocity *= m_speed;
+            m_lastDirection = m_targetVelocity;
+            m_targetVelocity *= m_speed;
 
-            if (targetVelocity != new Vector3(0, 0, 0))
+            if (m_targetVelocity != new Vector3(0, 0, 0))
                 m_dashParticles.Emit((Random.Range(0, 10) == 0) ? 1 : 0);
         }
 
         Vector3 velocity = m_rigidBody.velocity;
-        Vector3 velocityChange = targetVelocity - velocity;
+        Vector3 velocityChange = m_targetVelocity - velocity;
         velocity.x = Mathf.Clamp(velocityChange.x, -1, 1);
         velocity.z = Mathf.Clamp(velocityChange.z, -1, 1);
 
