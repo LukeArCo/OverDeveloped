@@ -24,7 +24,6 @@ public class PlayerController : MonoBehaviour
     float m_dashEnd;
     public float m_dashDelay;
     float m_nextDash;
-    public BoxCollider m_attackHitbox;
 
     Vector3 m_lastDirection;
     bool m_dashing;
@@ -32,13 +31,20 @@ public class PlayerController : MonoBehaviour
     int m_menuSelection;
     int m_maxMenuSelection;
     Button[] m_usedButtons;
-    
+    Vector3 m_targetVelocity;
+
     //ability variables
-    enum E_Ability {e_Stun,e_Sabotage,e_Shove,e_SwitchMachines };
+    enum E_Ability { e_Stun, e_Sabotage, e_Shove, e_SwitchMachines };
     E_Ability m_currentAbility = E_Ability.e_Stun;
     bool m_stuned = false;
-    float m_stunedTimer;
-    float m_stunCooldown;
+    float m_stunedTimer = 0;
+    float m_stunCooldown = 0;
+    bool m_stunOtherPlayer = false;
+    float m_ShoveCooldown = 0;
+    bool m_shoveOtherPlayer = false;
+    bool m_shoved = false;
+    float m_shovedTimer;
+    Vector3 m_shoveVelocity;
 
     [Header("Components")]
     public Camera m_camera;
@@ -63,7 +69,7 @@ public class PlayerController : MonoBehaviour
     GameObject m_console;
     bool m_isInteracting;
     int m_timer;
-    
+
 
     void Start()
     {
@@ -72,8 +78,8 @@ public class PlayerController : MonoBehaviour
         m_role.text = "Role: " + ((m_playerType == PlayerType.Worker) ? "Worker" : "Traitor");
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
         m_mMapText.text = "P" + m_player.ToString();
-        
-        switch(m_player)
+
+        switch (m_player)
         {
             case 1:
                 m_mMapText.color = new Color(0 / 255, 255.0f / 255, 0 / 255, 255.0f / 255);
@@ -92,14 +98,17 @@ public class PlayerController : MonoBehaviour
                 m_graphicRenderer.material.color = new Color(0 / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
                 break;
         }
+
         if (m_playerType == PlayerType.Traitor)
         {
-            m_maxMenuSelection = m_traitorMenuButtons.Length;
+            m_maxMenuSelection = m_traitorMenuButtons.Length - 1;
+            Debug.Log(m_maxMenuSelection);
             m_usedButtons = m_traitorMenuButtons;
         }
         else
         {
-            m_maxMenuSelection = m_workerMenuButtons.Length;
+            m_maxMenuSelection = m_workerMenuButtons.Length - 1;
+            Debug.Log(m_maxMenuSelection);
             m_usedButtons = m_workerMenuButtons;
         }
 
@@ -120,36 +129,54 @@ public class PlayerController : MonoBehaviour
         if (!m_inMenu && !m_stuned)
         
         if (!m_inMenu)
+        if(!m_shoved && !m_dashing)
+            m_targetVelocity = new Vector3(0, 0, 0);
+
+        if (!m_inMenu && !m_stuned)
+
+
+            if (!m_inMenu)
+
+            {
+                m_targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
+            }
+
+
+        if (m_stuned)
         {
-            targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
-        }
-        if(m_stuned)
-        {
-            if(Time.time > m_stunedTimer)
+            if (Time.time > m_stunedTimer)
             {
                 m_stuned = false;
             }
         }
+        if(m_shoved)
+        {
+            m_targetVelocity = m_shoveVelocity;
+            if(Time.time > m_shovedTimer)
+            {
+                m_shoved = !m_shoved;
+            }
+        }
 
-        targetVelocity = transform.TransformDirection(targetVelocity);
+        m_targetVelocity = transform.TransformDirection(m_targetVelocity);
 
         if (m_dashing)
         {
-            targetVelocity = m_lastDirection;
-            targetVelocity = transform.TransformDirection(targetVelocity);
-            targetVelocity *= m_dashSpeed;
+            m_targetVelocity = m_lastDirection;
+            m_targetVelocity = transform.TransformDirection(m_targetVelocity);
+            m_targetVelocity *= m_dashSpeed;
         }
         else
         {
-            m_lastDirection = targetVelocity;
-            targetVelocity *= m_speed;
+            m_lastDirection = m_targetVelocity;
+            m_targetVelocity *= m_speed;
 
-            if (targetVelocity != new Vector3(0, 0, 0))
+            if (m_targetVelocity != new Vector3(0, 0, 0))
                 m_dashParticles.Emit((Random.Range(0, 10) == 0) ? 1 : 0);
         }
 
         Vector3 velocity = m_rigidBody.velocity;
-        Vector3 velocityChange = targetVelocity - velocity;
+        Vector3 velocityChange = m_targetVelocity - velocity;
         velocity.x = Mathf.Clamp(velocityChange.x, -1, 1);
         velocity.z = Mathf.Clamp(velocityChange.z, -1, 1);
 
@@ -171,8 +198,9 @@ public class PlayerController : MonoBehaviour
                 m_dashParticles.Emit(15);
             }
 
-            if(m_curState.Buttons.X == ButtonState.Pressed)
+            if (m_curState.Buttons.X == ButtonState.Pressed)
             {
+                Debug.Log("UseAblilty");
                 UseAbility();
             }
         }
@@ -226,7 +254,7 @@ public class PlayerController : MonoBehaviour
 
     // Machine and item integration
     public bool IsInteracting() { return m_isInteracting; }
-    
+
     public void SetItem(GameObject _console) { m_console = _console; }
     public void SetItem() { m_console = null; } // Remove item from player
     public GameObject GetItem() { return m_console; }
@@ -247,48 +275,62 @@ public class PlayerController : MonoBehaviour
 
         return -1;
     }
-    
+
     void MenuSelection()
     {
         //input
-        if(m_curState.ThumbSticks.Left.Y < -0.1 && m_prevState.ThumbSticks.Left.Y == 0)
+        if (m_curState.ThumbSticks.Left.Y < -0.1 && m_prevState.ThumbSticks.Left.Y == 0)
         {
             m_menuSelection++;
         }
-        else if(m_curState.ThumbSticks.Left.Y > 0.1 && m_prevState.ThumbSticks.Left.Y == 0)
+        else if (m_curState.ThumbSticks.Left.Y > 0.1 && m_prevState.ThumbSticks.Left.Y == 0)
         {
             m_menuSelection--;
         }
         //looping
-        if(m_menuSelection < 0)
+        if (m_menuSelection < 0)
         {
-            m_menuSelection = m_maxMenuSelection - 1;
+            m_menuSelection = m_maxMenuSelection;
         }
-        if(m_menuSelection > m_maxMenuSelection -1)
+        if (m_menuSelection > m_maxMenuSelection)
         {
             m_menuSelection = 0;
         }
 
         m_usedButtons[m_menuSelection].Select();
 
-        if(m_curState.Buttons.A == ButtonState.Pressed)
+        if (m_curState.Buttons.A == ButtonState.Pressed)
         {
             m_usedButtons[m_menuSelection].onClick.Invoke();
+            m_inMenu = !m_inMenu;
+            if (m_playerType == PlayerType.Traitor)
+            {
+                m_traitorMenu.SetActive(m_inMenu);
+            }
+            else
+            {
+                m_workerMenu.SetActive(m_inMenu);
+            }
         }
     }
 
     void UseAbility()
     {
-        switch(m_currentAbility)
+        switch (m_currentAbility)
         {
             case E_Ability.e_Stun:
-                if(Time.time > m_stunCooldown)
+                if (Time.time > m_stunCooldown)
                 {
-                    
+                    m_stunOtherPlayer = true;
+                    m_stunCooldown = Time.time + 3;
                 }
                 break;
             case E_Ability.e_Shove:
-
+                if (Time.time > m_ShoveCooldown)
+                {
+                    m_shoveOtherPlayer = true;
+                    m_ShoveCooldown = Time.time + 3;
+                }
                 break;
             case E_Ability.e_Sabotage:
 
@@ -300,22 +342,38 @@ public class PlayerController : MonoBehaviour
     }
 
     public int GetType() { return (int)m_playerType; }
+    public void TriggerStunned() { m_stuned = true;m_stunedTimer = Time.time + 3; }
+    public void TriggerShove(Vector3 _TraitorFacingDir) { m_shoveVelocity = new Vector3(_TraitorFacingDir.x*2, 0, _TraitorFacingDir.z*2); m_shoved = true; m_shovedTimer = Time.time + 0.2f; Debug.Log("Has Been shoved"); }
 
     // Swiping
     private void OnTriggerStay(Collider other)
     {
-        if(other.GetComponent<PlayerController>() != null)
+        if (other.GetComponent<PlayerController>() != null)
         {
 			if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null && other.GetComponent<PlayerController>().GetItem() != null) // You are an empty handed worker, they are a stealing fuckface
             {
                 CanInteract("Steal!");
 
-                if(m_isInteracting && m_console == null)
+                if (m_isInteracting && m_console == null)
                 {
                     m_console = other.GetComponent<PlayerController>().GetItem();
                     other.GetComponent<PlayerController>().SetItem();
                 }
             }
+        }
+        if(other.gameObject.CompareTag("Player"))
+        {
+                if (m_stunOtherPlayer)
+                {
+                    Debug.Log("triggered stun");
+                    other.GetComponent<PlayerController>().TriggerStunned();
+                    m_stunOtherPlayer = false;
+                }
+                if (m_shoveOtherPlayer)
+                {
+                    other.GetComponent<PlayerController>().TriggerShove(m_graphicTransform.forward);
+                    m_shoveOtherPlayer = false;
+                }
         }
     }
 
