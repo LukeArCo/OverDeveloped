@@ -140,7 +140,7 @@ public class Machine : MonoBehaviour {
                 }
             }
         }
-        else if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working) // Traitor Interactions
+        else if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working && collider.GetComponent<PlayerController>().GetType() == 1) // Traitor Interactions
         {
             collider.GetComponent<PlayerController>().CanInteract("Sabotage");
         }
