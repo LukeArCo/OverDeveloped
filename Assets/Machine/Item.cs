@@ -98,8 +98,6 @@ public class Item : MonoBehaviour
         }
     }
 
-    public bool IsProcessing() { return isProcessing; }
-    public void SetIsProcessing(bool _isProcessing) { isProcessing = _isProcessing; }
     public bool IsProcessing() { return m_isProcessing; }
     public void SetIsProcessing(bool _isProcessing) { m_isProcessing = _isProcessing; }
     public float GetPaintTime() { return m_paintTimer; }

@@ -17,7 +17,6 @@ public class Machine : MonoBehaviour {
     float m_timer;
     GameObject m_console;
     E_Status m_currentStatus;
-    bool m_canInteract = false;
     bool m_canInteract = true;
 
 
@@ -68,7 +67,6 @@ public class Machine : MonoBehaviour {
                     boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
                 }
 
-                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
                 if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour || m_console.GetComponent<Item>().GetStep() == 7)
                 {
                     m_console.GetComponent<Renderer>().material = m_paintMat;
