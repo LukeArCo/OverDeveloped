@@ -9,6 +9,7 @@ public class Machine : MonoBehaviour {
     public enum E_Type { t_gbProc, t_gbCase, t_dsProc, t_dsCase, t_switchProc, t_switchCase, t_colour };
 
     public Mesh swapMesh;
+    public Material paintMat;
     public E_Type currType;
     public float processingTime;
 
@@ -55,8 +56,25 @@ public class Machine : MonoBehaviour {
                 console.GetComponent<Rigidbody>().useGravity = true;
 
                 console.GetComponent<MeshFilter>().mesh = swapMesh; // Resources.Load<Mesh>("cube");
+
+                BoxCollider[] boxes = console.GetComponents<BoxCollider>();
+
+                if (console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
+                {
+                    boxes[0].size = new Vector3(0.06f, 0.12f, 0.06f);
+                    boxes[1].size = new Vector3(0.02f, 0.04f, 0.02f);
+                }
+
+                if(console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
+                {
+                    console.GetComponent<Renderer>().material = paintMat;
+                }
+
+                console.GetComponent<Transform>().localScale = new Vector3(10, 10, 10);
+
                 console.GetComponent<Item>().AdvanceStep();
                 console.GetComponent<Item>().SetIsProcessing(false);
+
 
                 console = null;
             }

@@ -76,7 +76,7 @@ public class PlaceholderPlayer : MonoBehaviour {
         // MOVE ITEM
         if(console != null)
         {
-            float distance = (gameObject.GetComponent<Transform>().localScale.x * 0.5f)+ console.GetComponent<Transform>().localScale.x;
+            float distance = 0.5f;
 
             console.GetComponent<Transform>().SetPositionAndRotation(gameObject.GetComponent<Transform>().position, Quaternion.Euler(gameObject.GetComponent<Transform>().eulerAngles));
             console.GetComponent<Transform>().Translate(new Vector3(0, 0, distance));
