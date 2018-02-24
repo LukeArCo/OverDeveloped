@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     float m_dashEnd;
     public float m_dashDelay;
     float m_nextDash;
+    public BoxCollider m_attackHitbox;
 
     Vector3 m_lastDirection;
     bool m_dashing;
@@ -31,6 +32,13 @@ public class PlayerController : MonoBehaviour
     int m_menuSelection;
     int m_maxMenuSelection;
     Button[] m_usedButtons;
+    
+    //ability variables
+    enum E_Ability {e_Stun,e_Sabotage,e_Shove,e_SwitchMachines };
+    E_Ability m_currentAbility = E_Ability.e_Stun;
+    bool m_stuned = false;
+    float m_stunedTimer;
+    float m_stunCooldown;
 
     [Header("Components")]
     public Camera m_camera;
@@ -81,9 +89,16 @@ public class PlayerController : MonoBehaviour
 
         Vector3 targetVelocity = new Vector3(0, 0, 0);
 
-        if (!m_inMenu)
+        if (!m_inMenu && !m_stuned)
         {
             targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
+        }
+        if(m_stuned)
+        {
+            if(Time.time > m_stunedTimer)
+            {
+                m_stuned = false;
+            }
         }
 
         targetVelocity = transform.TransformDirection(targetVelocity);
@@ -125,6 +140,11 @@ public class PlayerController : MonoBehaviour
                 m_dashEnd = Time.time + m_dashLength;
                 m_dashParticles.Emit(15);
             }
+
+            if(m_curState.Buttons.X == ButtonState.Pressed)
+            {
+                UseAbility();
+            }
         }
 
         //Menu
@@ -139,9 +159,11 @@ public class PlayerController : MonoBehaviour
             {
                 m_workerMenu.SetActive(m_inMenu);
             }
+        }
+        if (m_inMenu)
+        {
             MenuSelection();
         }
-
         if (Time.time > m_dashEnd && m_dashing)
         {
             m_nextDash = Time.time + m_dashDelay;
@@ -199,20 +221,20 @@ public class PlayerController : MonoBehaviour
     void MenuSelection()
     {
         //input
-        if(m_curState.ThumbSticks.Right.Y < -0.5)
+        if(m_curState.ThumbSticks.Left.Y < -0.1 && m_prevState.ThumbSticks.Left.Y == 0)
         {
             m_menuSelection++;
         }
-        if(m_curState.ThumbSticks.Right.Y > 0.5)
+        else if(m_curState.ThumbSticks.Left.Y > 0.1 && m_prevState.ThumbSticks.Left.Y == 0)
         {
             m_menuSelection--;
         }
         //looping
         if(m_menuSelection < 0)
         {
-            m_menuSelection = m_maxMenuSelection;
+            m_menuSelection = m_maxMenuSelection - 1;
         }
-        if(m_menuSelection > m_maxMenuSelection)
+        if(m_menuSelection > m_maxMenuSelection -1)
         {
             m_menuSelection = 0;
         }
@@ -221,7 +243,29 @@ public class PlayerController : MonoBehaviour
 
         if(m_curState.Buttons.A == ButtonState.Pressed)
         {
-            m_usedButtons[m_menuSelection].enabled = true;
+            m_usedButtons[m_menuSelection].onClick.Invoke();
+        }
+    }
+
+    void UseAbility()
+    {
+        switch(m_currentAbility)
+        {
+            case E_Ability.e_Stun:
+                if(Time.time > m_stunCooldown)
+                {
+                    
+                }
+                break;
+            case E_Ability.e_Shove:
+
+                break;
+            case E_Ability.e_Sabotage:
+
+                break;
+            case E_Ability.e_SwitchMachines:
+
+                break;
         }
     }
 
@@ -245,4 +289,32 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SwitchToStun()
+    {
+        m_currentAbility = E_Ability.e_Stun;
+        Debug.Log("Switched to Stun");
+    }
+
+    public void SwitchToSabotage()
+    {
+        m_currentAbility = E_Ability.e_Sabotage;
+        Debug.Log("Switched to saba");
+    }
+
+    public void SwitchToShove()
+    {
+        Debug.Log("Switched to Shove");
+        m_currentAbility = E_Ability.e_Shove;
+    }
+
+    public void SwitchToMachineLocations()
+    {
+        m_currentAbility = E_Ability.e_SwitchMachines;
+        Debug.Log("Switched to switch machines");
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        
+    }
 }
