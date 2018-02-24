@@ -95,13 +95,15 @@ public class PlayerController : MonoBehaviour
             m_usedButtons = m_workerMenuButtons;
         }
 
-        m_interact.color = m_role.color;
+        // m_interact.color = m_role.color;
         m_menuSelection = 0;
         m_interact.text = " ";
     }
 
     void FixedUpdate()
     {
+        m_interact.color = m_role.color;
+
         m_prevState = m_curState;
         m_curState = GamePad.GetState(m_pIndex);
 
@@ -258,7 +260,7 @@ public class PlayerController : MonoBehaviour
     {
         if(other.GetComponent<PlayerController>() != null)
         {
-            if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null) // You are an empty handed worker, they are a stealing fuckface
+            if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null && other.GetComponent<PlayerController>().GetItem() != null) // You are an empty handed worker, they are a stealing fuckface
             {
                 CanInteract("Steal!");
 
