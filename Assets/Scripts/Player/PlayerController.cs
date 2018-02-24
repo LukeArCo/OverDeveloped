@@ -40,6 +40,12 @@ public class PlayerController : MonoBehaviour
     public GameObject m_workerMenu;
     public Text m_playerText;
     public Text m_role;
+    public Text m_interact;
+
+    // Machine and Item Integration variables
+    GameObject m_console;
+    bool m_isInteracting;
+    int m_timer;
 
     void Start()
     {
@@ -119,5 +125,52 @@ public class PlayerController : MonoBehaviour
             m_nextDash = Time.time + m_dashDelay;
             m_dashing = false;
         }
+
+        // Machine and Item integration
+        m_isInteracting = m_curState.Buttons.A == 0;
+
+        if (m_timer > 0) { m_timer--; }
+        else if (m_timer == 0) { m_interact.text = ""; m_timer = -1; }
+
+        // Item carrying
+        if (m_console != null)
+        {
+            float distance = 0.5f;
+
+            m_console.GetComponent<Transform>().SetPositionAndRotation(gameObject.GetComponent<Transform>().position, Quaternion.Euler(m_graphicTransform.eulerAngles));
+            m_console.GetComponent<Transform>().Translate(new Vector3(0, 0, distance));
+
+            if (m_curState.Buttons.X == 0) // Drop carried item
+            {
+                m_console.GetComponent<Rigidbody>().useGravity = true;
+                m_console = null;
+            }
+        }
+
     }
+
+    // Machine and item integration
+    public bool IsInteracting() { return m_isInteracting; }
+    
+    public void SetItem(GameObject _console) { m_console = _console; }
+    public void SetItem() { m_console = null; } // Remove item from player
+    public GameObject GetItem() { return m_console; }
+
+    public void CanInteract(string _message)
+    {
+        m_timer = 2;
+        m_interact.enabled = true;
+        m_interact.text = "A - " + _message;
+    }
+
+    public int GetNextStep()
+    {
+        if (m_console != null)
+        {
+            return m_console.GetComponent<Item>().GetStep();
+        }
+
+        return -1;
+    }
+
 }

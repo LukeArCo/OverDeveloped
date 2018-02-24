@@ -64,15 +64,17 @@ public class Item : MonoBehaviour
     {
         GameObject collider = other.gameObject;
 
-        if (collider.GetComponent<PlaceholderPlayer>() != null)
+        if (collider.GetComponent<PlayerController>() != null)
         {
-            if (collider.GetComponent<PlaceholderPlayer>().GetItem() == null && !isProcessing) // The player isn't carrying anything
-            {
-                collider.GetComponent<PlaceholderPlayer>().CanInteract("Pick Up"); // Pickup indicator
 
-                if(collider.GetComponent<PlaceholderPlayer>().IsInteracting()) // Player picks it up
+            if (collider.GetComponent<PlayerController>().GetItem() == null && !isProcessing) // The player isn't carrying anything
+            {
+                collider.GetComponent<PlayerController>().CanInteract("Pick Up"); // Pickup indicator
+
+                if(collider.GetComponent<PlayerController>().IsInteracting()) // Player picks it up
                 {
-                    collider.GetComponent<PlaceholderPlayer>().SetItem(gameObject);
+                    gameObject.GetComponent<Rigidbody>().useGravity = false; // Because fuck gravity, it messes carrying up
+                    collider.GetComponent<PlayerController>().SetItem(gameObject);
                 }
             }
         }

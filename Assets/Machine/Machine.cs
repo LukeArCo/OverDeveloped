@@ -8,24 +8,25 @@ public class Machine : MonoBehaviour {
     enum E_Status {e_working, e_broken };
     public enum E_Type { t_gbProc, t_gbCase, t_dsProc, t_dsCase, t_switchProc, t_switchCase, t_colour };
 
-    public Mesh swapMesh;
-    public Material paintMat;
-    public E_Type currType;
-    public float processingTime;
+    public Mesh m_swapMesh;
+    public Material m_paintMat;
+    public E_Type m_currType;
+    public float m_processingTime;
+    public Vector3 m_partOffset;
 
-    float timer;
-    GameObject console;
-    E_Status currentStatus;
-    bool canInteract = false;
+    float m_timer;
+    GameObject m_console;
+    E_Status m_currentStatus;
+    bool m_canInteract = false;
 
     // Use this for initialization
     void Start () {
-        currentStatus = E_Status.e_working;
+        m_currentStatus = E_Status.e_working;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		switch(currentStatus)
+		switch(m_currentStatus)
         {
             case E_Status.e_working:
                 Working();
@@ -40,43 +41,43 @@ public class Machine : MonoBehaviour {
     void Working()
     {
         // Do working stuff
-        if(console != null)
+        if(m_console != null)
         {
             Vector3 pos = gameObject.GetComponent<Transform>().position;
             Quaternion ang = Quaternion.Euler(gameObject.GetComponent<Transform>().eulerAngles);
 
-            console.GetComponent<Transform>().SetPositionAndRotation(pos, ang);
-            console.GetComponent<Transform>().Translate(new Vector3(0, 0.25f, 0));
+            m_console.GetComponent<Transform>().SetPositionAndRotation(pos, ang);
+            m_console.GetComponent<Transform>().Translate(m_partOffset);
 
-            timer -= Time.deltaTime;
+            m_timer -= Time.deltaTime;
 
-            if(timer <= 0)
+            if(m_timer <= 0)
             {
-                //Debug.Log("DING! Cookings done...");
-                console.GetComponent<Rigidbody>().useGravity = true;
+                m_console.GetComponent<Rigidbody>().useGravity = true;
 
-                console.GetComponent<MeshFilter>().mesh = swapMesh; // Resources.Load<Mesh>("cube");
+                m_console.GetComponent<MeshFilter>().mesh = m_swapMesh; // Resources.Load<Mesh>("cube");
 
-                BoxCollider[] boxes = console.GetComponents<BoxCollider>();
+                BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
-                if (console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
+                if (m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
                 {
-                    boxes[0].size = new Vector3(0.06f, 0.12f, 0.06f);
-                    boxes[1].size = new Vector3(0.02f, 0.04f, 0.02f);
+                    boxes[0].size = new Vector3(0.02f, 0.02f, 0.02f);
+                    boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
                 }
 
-                if(console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
+                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
                 {
-                    console.GetComponent<Renderer>().material = paintMat;
+                    m_console.GetComponent<Renderer>().material = m_paintMat;
                 }
 
-                console.GetComponent<Transform>().localScale = new Vector3(10, 10, 10);
+                m_console.GetComponent<Transform>().localScale = new Vector3(14, 14, 14);
 
-                console.GetComponent<Item>().AdvanceStep();
-                console.GetComponent<Item>().SetIsProcessing(false);
+                m_console.GetComponent<Item>().AdvanceStep();
+                m_console.GetComponent<Item>().SetIsProcessing(false);
+                Debug.Log("Processing is done...");
 
 
-                console = null;
+                m_console = null;
             }
         }
     }
@@ -90,30 +91,30 @@ public class Machine : MonoBehaviour {
     {
         GameObject collider = other.gameObject;
 
-        if (collider.GetComponent<PlaceholderPlayer>() != null && currentStatus == E_Status.e_working)
+        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working)
         {
             // Debug.Log("Player can interact!");
-            canInteract = true;
+            m_canInteract = true;
 
-            if (collider.GetComponent<PlaceholderPlayer>().GetNextStep() == (int)currType)
+            if (collider.GetComponent<PlayerController>().GetNextStep() == (int)m_currType)
             {
-                collider.GetComponent<PlaceholderPlayer>().CanInteract("Interact");
+                collider.GetComponent<PlayerController>().CanInteract("Interact");
 
-                if(collider.GetComponent<PlaceholderPlayer>().IsInteracting())
+                if(collider.GetComponent<PlayerController>().IsInteracting())
                 {
-                    console = collider.GetComponent<PlaceholderPlayer>().GetItem();
-                    collider.GetComponent<PlaceholderPlayer>().SetItem(); // Set players item to null
+                    m_console = collider.GetComponent<PlayerController>().GetItem();
+                    collider.GetComponent<PlayerController>().SetItem(); // Set players item to null
 
-                    console.GetComponent<Item>().SetIsProcessing(true);
-                    console.GetComponent<Rigidbody>().useGravity = false;
+                    m_console.GetComponent<Item>().SetIsProcessing(true);
+                    m_console.GetComponent<Rigidbody>().useGravity = false;
 
-                    timer = processingTime;
+                    m_timer = m_processingTime;
                 }
             }
         }
         else
         {
-            canInteract = false;
+            m_canInteract = false;
         }
     }
 
