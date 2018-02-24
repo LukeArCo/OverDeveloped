@@ -18,6 +18,8 @@ public class Machine : MonoBehaviour {
     GameObject m_console;
     E_Status m_currentStatus;
     bool m_canInteract = false;
+    bool m_canInteract = true;
+
 
     // Use this for initialization
     void Start () {
@@ -67,9 +69,16 @@ public class Machine : MonoBehaviour {
                 }
 
                 if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
+                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour || m_console.GetComponent<Item>().GetStep() == 7)
                 {
                     m_console.GetComponent<Renderer>().material = m_paintMat;
+                    m_console.GetComponent<Item>().SetPaintTime(1.0f);
+                    m_console.GetComponent<Item>().SetIsProcessing(false);
                 }
+<<<<<<< HEAD
+=======
+                
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
 
                 m_console.GetComponent<Transform>().localScale = new Vector3(14, 14, 14);
 
@@ -77,6 +86,7 @@ public class Machine : MonoBehaviour {
                 m_console.GetComponent<Item>().SetIsProcessing(false);
                 Debug.Log("Processing is done...");
 
+                m_canInteract = true;
 
                 m_console = null;
             }
@@ -92,7 +102,12 @@ public class Machine : MonoBehaviour {
     {
         GameObject collider = other.gameObject;
 
+<<<<<<< HEAD
         if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working)
+=======
+        // Worker interactions
+        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working && collider.GetComponent<PlayerController>().GetType() == 0 && m_canInteract)
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
         {
             // Debug.Log("Player can interact!");
             m_canInteract = true;
@@ -110,6 +125,26 @@ public class Machine : MonoBehaviour {
                     m_console.GetComponent<Rigidbody>().useGravity = false;
 
                     m_timer = m_processingTime;
+
+                    m_canInteract = false;
+                }
+            }
+            else if(collider.GetComponent<PlayerController>().GetItem().GetComponent<Item>().GetPaintTime() < 0 &&   // Allow the player to reuse painting machines
+                collider.GetComponent<PlayerController>().GetNextStep() == 7 && m_currType == E_Type.t_colour) // WHAT THE FUCK HAVE I DONE?
+            {
+                collider.GetComponent<PlayerController>().CanInteract("Interact");
+
+                if (collider.GetComponent<PlayerController>().IsInteracting())
+                {
+                    m_console = collider.GetComponent<PlayerController>().GetItem();
+                    collider.GetComponent<PlayerController>().SetItem(); // Set players item to null
+
+                    m_console.GetComponent<Item>().SetIsProcessing(true);
+                    m_console.GetComponent<Rigidbody>().useGravity = false;
+
+                    m_timer = m_processingTime;
+
+                    m_canInteract = false;
                 }
             }
         }

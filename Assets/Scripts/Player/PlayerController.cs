@@ -28,12 +28,17 @@ public class PlayerController : MonoBehaviour
     Vector3 m_lastDirection;
     bool m_dashing;
     bool m_inMenu;
+    int m_menuSelection;
+    int m_maxMenuSelection;
+    Button[] m_usedButtons;
 
     [Header("Components")]
     public Camera m_camera;
     public Rigidbody m_rigidBody;
     public Transform m_graphicTransform;
     public ParticleSystem m_dashParticles;
+    public Button[] m_workerMenuButtons;
+    public Button[] m_traitorMenuButtons;
 
     [Header("Objects")]
     public MeshRenderer m_graphicRenderer;
@@ -50,6 +55,7 @@ public class PlayerController : MonoBehaviour
     GameObject m_console;
     bool m_isInteracting;
     int m_timer;
+    
 
     void Start()
     {
@@ -58,6 +64,7 @@ public class PlayerController : MonoBehaviour
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
         m_mMapText.text = "P" + m_player.ToString();
 
+<<<<<<< HEAD
         switch(m_player)
         {
             case 1:
@@ -77,6 +84,21 @@ public class PlayerController : MonoBehaviour
                 m_graphicRenderer.material.color = new Color(0 / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
                 break;
         }
+=======
+        if (m_playerType == PlayerType.Traitor)
+        {
+            m_maxMenuSelection = m_traitorMenuButtons.Length;
+            m_usedButtons = m_traitorMenuButtons;
+        }
+        else
+        {
+            m_maxMenuSelection = m_workerMenuButtons.Length;
+            m_usedButtons = m_workerMenuButtons;
+        }
+
+        m_interact.color = m_role.color;
+        m_menuSelection = 0;
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
     }
 
     void FixedUpdate()
@@ -132,6 +154,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        //Menu
         if (m_curState.Buttons.Start == ButtonState.Pressed && m_prevState.Buttons.Start != ButtonState.Pressed)
         {
             m_inMenu = !m_inMenu;
@@ -143,6 +166,7 @@ public class PlayerController : MonoBehaviour
             {
                 m_workerMenu.SetActive(m_inMenu);
             }
+            MenuSelection();
         }
 
         if (Time.time > m_dashEnd && m_dashing)
@@ -167,6 +191,7 @@ public class PlayerController : MonoBehaviour
 
             if (m_curState.Buttons.X == 0) // Drop carried item
             {
+                m_console.GetComponent<Item>().SetIsProcessing(false);
                 m_console.GetComponent<Rigidbody>().useGravity = true;
                 m_console = null;
             }
@@ -198,4 +223,56 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
+<<<<<<< HEAD
+=======
+    void MenuSelection()
+    {
+        //input
+        if(m_curState.ThumbSticks.Right.Y < -0.5)
+        {
+            m_menuSelection++;
+        }
+        if(m_curState.ThumbSticks.Right.Y > 0.5)
+        {
+            m_menuSelection--;
+        }
+        //looping
+        if(m_menuSelection < 0)
+        {
+            m_menuSelection = m_maxMenuSelection;
+        }
+        if(m_menuSelection > m_maxMenuSelection)
+        {
+            m_menuSelection = 0;
+        }
+
+        m_usedButtons[m_menuSelection].Select();
+
+        if(m_curState.Buttons.A == ButtonState.Pressed)
+        {
+            m_usedButtons[m_menuSelection].enabled = true;
+        }
+    }
+
+    public int GetType() { return (int)m_playerType; }
+
+    // Swiping
+    private void OnTriggerStay(Collider other)
+    {
+        if(other.GetComponent<PlayerController>() != null)
+        {
+            if(m_playerType == 0 && other.GetComponent<PlayerController>().GetType() == 1 && m_console == null) // You are an empty handed worker, they are a stealing fuckface
+            {
+                CanInteract("Steal!");
+
+                if(m_isInteracting && m_console == null)
+                {
+                    m_console = other.GetComponent<PlayerController>().GetItem();
+                    other.GetComponent<PlayerController>().SetItem();
+                }
+            }
+        }
+    }
+
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
 }
