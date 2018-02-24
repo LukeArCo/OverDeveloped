@@ -52,6 +52,8 @@ public class PlayerController : MonoBehaviour
         m_playerText.text = "Player " + m_player.ToString();
         m_role.text = "Role: " + ((m_playerType == PlayerType.Worker) ? "Worker" : "Traitor");
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
+
+        m_interact.color = m_role.color;
     }
 
     void FixedUpdate()
@@ -173,4 +175,5 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
+    public int GetType() { return (int)m_playerType; }
 }

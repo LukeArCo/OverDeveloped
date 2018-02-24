@@ -60,7 +60,7 @@ public class Machine : MonoBehaviour {
 
                 BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
-                if (m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
+                if (m_console.GetComponent<Item>().GetStep() % 2 == 0 && m_console.GetComponent<Item>().GetStep() < 6)
                 {
                     boxes[0].size = new Vector3(0.02f, 0.02f, 0.02f);
                     boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
@@ -70,7 +70,7 @@ public class Machine : MonoBehaviour {
                 {
                     m_console.GetComponent<Renderer>().material = m_paintMat;
                 }
-
+                
                 m_console.GetComponent<Transform>().localScale = new Vector3(14, 14, 14);
 
                 m_console.GetComponent<Item>().AdvanceStep();
@@ -92,13 +92,15 @@ public class Machine : MonoBehaviour {
     {
         GameObject collider = other.gameObject;
 
-        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working)
+        // Worker interactions
+        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working && collider.GetComponent<PlayerController>().GetType() == 0)
         {
             // Debug.Log("Player can interact!");
             m_canInteract = true;
 
             if (collider.GetComponent<PlayerController>().GetNextStep() == (int)m_currType)
             {
+
                 collider.GetComponent<PlayerController>().CanInteract("Interact");
 
                 if(collider.GetComponent<PlayerController>().IsInteracting())
@@ -113,9 +115,9 @@ public class Machine : MonoBehaviour {
                 }
             }
         }
-        else
+        else if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working) // Traitor Interactions
         {
-            m_canInteract = false;
+            collider.GetComponent<PlayerController>().CanInteract("Sabotage");
         }
     }
 

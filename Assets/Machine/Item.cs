@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    enum E_Step { s_gbProc, s_gbCase, s_dsProc, s_dsCase, s_switchProc, s_switchCase, s_colour, s_complete };
+    public enum E_Step { s_gbProc, s_gbCase, s_dsProc, s_dsCase, s_switchProc, s_switchCase, s_colour, s_complete };
     enum E_Type { t_gb, t_ds, t_switch };
 
-    E_Step nextStep;
+    public E_Step nextStep;
 
     bool isProcessing = false;
 
     void Awake()
     {
-        nextStep = E_Step.s_gbProc;
+        //nextStep = E_Step.s_gbProc;
     }
 
     // Use this for initialization
