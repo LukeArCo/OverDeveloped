@@ -40,10 +40,14 @@ public class PlayerController : MonoBehaviour
     public Button[] m_workerMenuButtons;
     public Button[] m_traitorMenuButtons;
 
+    [Header("Objects")]
+    public MeshRenderer m_graphicRenderer;
+
     [Header("UI")]
     public GameObject m_traitorMenu;
     public GameObject m_workerMenu;
     public Text m_playerText;
+    public Text m_mMapText;
     public Text m_role;
     public Text m_interact;
 
@@ -58,7 +62,29 @@ public class PlayerController : MonoBehaviour
         m_playerText.text = "Player " + m_player.ToString();
         m_role.text = "Role: " + ((m_playerType == PlayerType.Worker) ? "Worker" : "Traitor");
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
+        m_mMapText.text = "P" + m_player.ToString();
 
+<<<<<<< HEAD
+        switch(m_player)
+        {
+            case 1:
+                m_mMapText.color = new Color(0 / 255, 255.0f / 255, 0 / 255, 255.0f / 255);
+                m_graphicRenderer.material.color = new Color(0 / 255, 255.0f / 255, 0 / 255, 255.0f / 255);
+                break;
+            case 2:
+                m_mMapText.color = new Color(255.0f / 255, 0 / 255, 0 / 255, 255.0f / 255);
+                m_graphicRenderer.material.color = new Color(255.0f / 255, 0 / 255, 0 / 255, 255.0f / 255);
+                break;
+            case 3:
+                m_mMapText.color = new Color(255.0f / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
+                m_graphicRenderer.material.color = new Color(255.0f / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
+                break;
+            case 4:
+                m_mMapText.color = new Color(0 / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
+                m_graphicRenderer.material.color = new Color(0 / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
+                break;
+        }
+=======
         if (m_playerType == PlayerType.Traitor)
         {
             m_maxMenuSelection = m_traitorMenuButtons.Length;
@@ -72,6 +98,7 @@ public class PlayerController : MonoBehaviour
 
         m_interact.color = m_role.color;
         m_menuSelection = 0;
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
     }
 
     void FixedUpdate()
@@ -80,7 +107,7 @@ public class PlayerController : MonoBehaviour
         m_curState = GamePad.GetState(m_pIndex);
 
         Vector3 targetVelocity = new Vector3(0, 0, 0);
-
+        
         if (!m_inMenu)
         {
             targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
@@ -196,6 +223,8 @@ public class PlayerController : MonoBehaviour
         return -1;
     }
 
+<<<<<<< HEAD
+=======
     void MenuSelection()
     {
         //input
@@ -245,4 +274,5 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+>>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
 }

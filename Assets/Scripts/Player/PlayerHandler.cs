@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using XInputDotNetPure;
 
-public class PlayerHandler : MonoBehaviour {
+public class PlayerHandler : MonoBehaviour
+{
 
     [Header("Settings")]
     public GamePadState m_player1;
@@ -22,7 +23,6 @@ public class PlayerHandler : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        //StartGame();
         m_player1 = GamePad.GetState(PlayerIndex.One);
 	}
 	
@@ -79,7 +79,7 @@ public class PlayerHandler : MonoBehaviour {
         {
             if(!m_activePlayers[i])
             {
-                //continue;
+                continue;
             }
 
             m_players[i] = Instantiate(m_player, transform.position, Quaternion.identity).GetComponent<PlayerController>();
