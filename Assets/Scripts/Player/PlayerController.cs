@@ -28,12 +28,17 @@ public class PlayerController : MonoBehaviour
     Vector3 m_lastDirection;
     bool m_dashing;
     bool m_inMenu;
+    int m_menuSelection;
+    int m_maxMenuSelection;
+    Button[] m_usedButtons;
 
     [Header("Components")]
     public Camera m_camera;
     public Rigidbody m_rigidBody;
     public Transform m_graphicTransform;
     public ParticleSystem m_dashParticles;
+    public Button[] m_workerMenuButtons;
+    public Button[] m_traitorMenuButtons;
 
     [Header("UI")]
     public GameObject m_traitorMenu;
@@ -54,7 +59,19 @@ public class PlayerController : MonoBehaviour
         m_role.text = "Role: " + ((m_playerType == PlayerType.Worker) ? "Worker" : "Traitor");
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
 
+        if (m_playerType == PlayerType.Traitor)
+        {
+            m_maxMenuSelection = m_traitorMenuButtons.Length;
+            m_usedButtons = m_traitorMenuButtons;
+        }
+        else
+        {
+            m_maxMenuSelection = m_workerMenuButtons.Length;
+            m_usedButtons = m_workerMenuButtons;
+        }
+
         m_interact.color = m_role.color;
+        m_menuSelection = 0;
     }
 
     void FixedUpdate()
@@ -110,6 +127,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        //Menu
         if (m_curState.Buttons.Start == ButtonState.Pressed && m_prevState.Buttons.Start != ButtonState.Pressed)
         {
             m_inMenu = !m_inMenu;
@@ -121,6 +139,7 @@ public class PlayerController : MonoBehaviour
             {
                 m_workerMenu.SetActive(m_inMenu);
             }
+            MenuSelection();
         }
 
         if (Time.time > m_dashEnd && m_dashing)
@@ -175,6 +194,35 @@ public class PlayerController : MonoBehaviour
         }
 
         return -1;
+    }
+
+    void MenuSelection()
+    {
+        //input
+        if(m_curState.ThumbSticks.Right.Y < -0.5)
+        {
+            m_menuSelection++;
+        }
+        if(m_curState.ThumbSticks.Right.Y > 0.5)
+        {
+            m_menuSelection--;
+        }
+        //looping
+        if(m_menuSelection < 0)
+        {
+            m_menuSelection = m_maxMenuSelection;
+        }
+        if(m_menuSelection > m_maxMenuSelection)
+        {
+            m_menuSelection = 0;
+        }
+
+        m_usedButtons[m_menuSelection].Select();
+
+        if(m_curState.Buttons.A == ButtonState.Pressed)
+        {
+            m_usedButtons[m_menuSelection].enabled = true;
+        }
     }
 
     public int GetType() { return (int)m_playerType; }
