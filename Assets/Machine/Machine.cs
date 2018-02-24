@@ -48,6 +48,7 @@ public class Machine : MonoBehaviour {
 
             m_console.GetComponent<Transform>().SetPositionAndRotation(pos, ang);
             m_console.GetComponent<Transform>().Translate(m_partOffset);
+            m_console.GetComponent<Transform>().Rotate(new Vector3(0, m_timer * 500.0f, 0));
 
             m_timer -= Time.deltaTime;
 
@@ -55,7 +56,7 @@ public class Machine : MonoBehaviour {
             {
                 m_console.GetComponent<Rigidbody>().useGravity = true;
 
-                m_console.GetComponent<MeshFilter>().mesh = m_swapMesh; // Resources.Load<Mesh>("cube");
+                if(m_currType != E_Type.t_colour) { m_console.GetComponent<MeshFilter>().mesh = m_swapMesh; } // Don't swap mesh for colouring
 
                 BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
