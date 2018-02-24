@@ -59,12 +59,12 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+
         m_playerText.text = "Player " + m_player.ToString();
         m_role.text = "Role: " + ((m_playerType == PlayerType.Worker) ? "Worker" : "Traitor");
         m_role.color = ((m_playerType == PlayerType.Worker) ? new Color(150.0f / 255, 255.0f / 255, 150.0f / 255, 255.0f / 255) : new Color(255.0f / 255, 150.0f / 255, 150.0f / 255, 255.0f / 255));
         m_mMapText.text = "P" + m_player.ToString();
-
-<<<<<<< HEAD
+        
         switch(m_player)
         {
             case 1:
@@ -84,7 +84,6 @@ public class PlayerController : MonoBehaviour
                 m_graphicRenderer.material.color = new Color(0 / 255, 0 / 255, 255.0f / 255, 255.0f / 255);
                 break;
         }
-=======
         if (m_playerType == PlayerType.Traitor)
         {
             m_maxMenuSelection = m_traitorMenuButtons.Length;
@@ -98,7 +97,7 @@ public class PlayerController : MonoBehaviour
 
         m_interact.color = m_role.color;
         m_menuSelection = 0;
->>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
+        m_interact.text = " ";
     }
 
     void FixedUpdate()
@@ -222,9 +221,7 @@ public class PlayerController : MonoBehaviour
 
         return -1;
     }
-
-<<<<<<< HEAD
-=======
+    
     void MenuSelection()
     {
         //input
@@ -273,6 +270,5 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
->>>>>>> b47cf68ecd9d7ab151e95fe5674cf686f7d44169
+    
 }

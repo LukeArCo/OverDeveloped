@@ -61,7 +61,7 @@ public class Machine : MonoBehaviour {
 
                 BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
-                if (m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
+                if (m_console.GetComponent<Item>().GetStep() % 2 == 0 && m_console.GetComponent<Item>().GetStep() < 6) //(int)E_Type.t_gbProc)
                 {
                     boxes[0].size = new Vector3(0.02f, 0.02f, 0.02f);
                     boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
