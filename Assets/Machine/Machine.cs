@@ -17,10 +17,7 @@ public class Machine : MonoBehaviour {
     float m_timer;
     GameObject m_console;
     E_Status m_currentStatus;
-    bool m_canInteract = true;
-	bool m_isBroken = false;
-    float m_repairTimer;
-    bool m_isRepairing;
+    bool m_canInteract = false;
 
     // Use this for initialization
     void Start () {
@@ -63,17 +60,15 @@ public class Machine : MonoBehaviour {
 
                 BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
-                if (m_console.GetComponent<Item>().GetStep() % 2 == 0 && m_console.GetComponent<Item>().GetStep() < 6) //(int)E_Type.t_gbProc)
+                if (m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
                 {
                     boxes[0].size = new Vector3(0.02f, 0.02f, 0.02f);
                     boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
                 }
 
-                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour || m_console.GetComponent<Item>().GetStep() == 7)
+                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
                 {
                     m_console.GetComponent<Renderer>().material = m_paintMat;
-                    m_console.GetComponent<Item>().SetPaintTime(1.0f);
-                    m_console.GetComponent<Item>().SetIsProcessing(false);
                 }
 
                 m_console.GetComponent<Transform>().localScale = new Vector3(14, 14, 14);
@@ -82,7 +77,6 @@ public class Machine : MonoBehaviour {
                 m_console.GetComponent<Item>().SetIsProcessing(false);
                 Debug.Log("Processing is done...");
 
-                m_canInteract = true;
 
                 m_console = null;
             }
@@ -92,82 +86,45 @@ public class Machine : MonoBehaviour {
     void Broken()
     {
         // Do broken shit
-        Vector3 pos = gameObject.GetComponent<Transform>().position;
-        Quaternion ang = Quaternion.Euler(gameObject.GetComponent<Transform>().eulerAngles);
-
-        m_console.GetComponent<Transform>().SetPositionAndRotation(pos, ang);
-        m_console.GetComponent<Transform>().Translate(m_partOffset);
-        m_console.GetComponent<Transform>().Rotate(new Vector3(0, m_timer * 500.0f, 0));
     }
 
     private void OnTriggerStay(Collider other)
-	{
-		GameObject collider = other.gameObject;
+    {
+        GameObject collider = other.gameObject;
 
-		if (collider.GetComponent<PlayerController> () != null && m_currentStatus == E_Status.e_working) {
-			if (collider.GetComponent<PlayerController> () != null && m_currentStatus == E_Status.e_working && collider.GetComponent<PlayerController> ().GetType () == 0 && m_canInteract) {
-				// Debug.Log("Player can interact!");
-				m_canInteract = true;
+        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working)
+        {
+            // Debug.Log("Player can interact!");
+            m_canInteract = true;
 
-				if (collider.GetComponent<PlayerController> ().GetNextStep () == (int)m_currType) {
-					collider.GetComponent<PlayerController> ().CanInteract ("Interact");
+            if (collider.GetComponent<PlayerController>().GetNextStep() == (int)m_currType)
+            {
+                collider.GetComponent<PlayerController>().CanInteract("Interact");
 
-					if (collider.GetComponent<PlayerController> ().IsInteracting ()) {
-						m_console = collider.GetComponent<PlayerController> ().GetItem ();
-						collider.GetComponent<PlayerController> ().SetItem (); // Set players item to null
+                if(collider.GetComponent<PlayerController>().IsInteracting())
+                {
+                    m_console = collider.GetComponent<PlayerController>().GetItem();
+                    collider.GetComponent<PlayerController>().SetItem(); // Set players item to null
 
-						m_console.GetComponent<Item> ().SetIsProcessing (true);
-						m_console.GetComponent<Rigidbody> ().useGravity = false;
+                    m_console.GetComponent<Item>().SetIsProcessing(true);
+                    m_console.GetComponent<Rigidbody>().useGravity = false;
 
-						m_timer = m_processingTime;
-
-						m_canInteract = false;
-					}
-				} else if (collider.GetComponent<PlayerController> ().GetItem ().GetComponent<Item> ().GetPaintTime () < 0 && // Allow the player to reuse painting machines
-				           collider.GetComponent<PlayerController> ().GetNextStep () == 7 && m_currType == E_Type.t_colour) { // WHAT THE FUCK HAVE I DONE?
-					collider.GetComponent<PlayerController> ().CanInteract ("Interact");
-
-					if (collider.GetComponent<PlayerController> ().IsInteracting ()) {
-						m_console = collider.GetComponent<PlayerController> ().GetItem ();
-						collider.GetComponent<PlayerController> ().SetItem (); // Set players item to null
-
-						m_console.GetComponent<Item> ().SetIsProcessing (true);
-						m_console.GetComponent<Rigidbody> ().useGravity = false;
-
-						m_timer = m_processingTime;
-
-						m_canInteract = false;
-					}
-				}
-			} else if (collider.GetComponent<PlayerController> () != null && m_currentStatus == E_Status.e_working && collider.GetComponent<PlayerController> ().GetType () == 1) {
-				// Traitor Interactions
-				collider.GetComponent<PlayerController> ().CanInteract ("Sabotage");
-
-				if (collider.GetComponent<PlayerController> ().IsInteracting ()) {
-					SetBroken (true);
-				}
-			} else {
-				m_canInteract = false;
-			}
-		}
-		else if (collider.GetComponent<PlayerController> () != null && m_currentStatus == E_Status.e_broken) {
-
-		}
-	}
+                    m_timer = m_processingTime;
+                }
+            }
+        }
+        else
+        {
+            m_canInteract = false;
+        }
+    }
 
     void Interact(GameObject _player, GameObject _item)
     {
 
     }
 
-	public bool IsBroken() { return m_isBroken; }
-	public void SetBroken(bool _broken)
-    {
-        m_isBroken = _broken;
 
-        if(m_isBroken) { m_currentStatus = E_Status.e_broken; }
-        else { m_currentStatus = E_Status.e_working; }
-    }
     
 }
 

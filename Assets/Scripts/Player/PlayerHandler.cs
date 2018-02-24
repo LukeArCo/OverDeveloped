@@ -16,6 +16,7 @@ public class PlayerHandler : MonoBehaviour
     public bool[] m_activePlayers = new bool[4];
     public Image[] m_activeLights = new Image[4];
     public PlayerController[] m_players = new PlayerController[4];
+    public Transform[] m_spawnPoints = new Transform[4];
     [Space(10)]
     public Camera m_menuCamera;
 
@@ -83,6 +84,7 @@ public class PlayerHandler : MonoBehaviour
             }
 
             m_players[i] = Instantiate(m_player, transform.position, Quaternion.identity).GetComponent<PlayerController>();
+            m_players[i].transform.position = m_spawnPoints[i].position;
             m_players[i].m_player = i + 1;
             m_players[i].m_pIndex = (PlayerIndex)i;
             m_players[i].m_curState = GamePad.GetState((PlayerIndex)i);
