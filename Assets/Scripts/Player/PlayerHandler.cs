@@ -73,6 +73,8 @@ public class PlayerHandler : MonoBehaviour {
 
     void StartGame()
     {
+        int traitor = Random.Range(0, m_playerCount + 1);
+
         for(int i = 0; i < m_playerCount; ++i)
         {
             if(!m_activePlayers[i])
@@ -84,6 +86,7 @@ public class PlayerHandler : MonoBehaviour {
             m_players[i].m_player = i + 1;
             m_players[i].m_pIndex = (PlayerIndex)i;
             m_players[i].m_curState = GamePad.GetState((PlayerIndex)i);
+            m_players[i].m_playerType = (i == traitor) ? PlayerController.PlayerType.Traitor : PlayerController.PlayerType.Worker;
 
             switch (i)
             {
