@@ -15,29 +15,49 @@ public class GameManager : MonoBehaviour {
 
 	int m_consoles;
 	float m_timer;
+	int m_traitor;
 
 	void Awake() {
+		m_traitor = -1; // Set traitor to player 1 (0) by default
 		DontDestroyOnLoad (gameObject);
 	}
 
 	// Use this for initialization
 	void Start () {
-		m_timer = 0.1f;
+		m_timer = m_roundTime;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		m_timer -= Time.deltaTime;
 
 		// Debug.Log (m_timer);
+		if (m_traitor == -1) {
+			m_traitor = 0;
+			SceneManager.LoadScene (Random.Range (1, m_mapCount + 1));
+			return;
+		}
+
+		m_timer -= Time.deltaTime;
 
 		if (m_timer <= 0) {
-			m_goal += m_increment;
-			Debug.LogWarning ("Goal is to make " + m_goal + " consoles!");
-
 			// Debug.Log ("Times up!");
 			m_timer = m_roundTime;
 
+
+			if (m_consoles < m_goal) {
+				m_scores [m_traitor]++;
+				Debug.Log ("Player " + (m_traitor + 1) + " has won the round!");
+			} else {
+				Debug.Log ("Player " + (m_traitor + 1) + " has lost the round!");
+			}
+
+			// Is traitor winner?
+			if (m_scores [m_traitor] == m_scoreLimit) {
+				Debug.Log ("Player " + (m_traitor + 1) + " Wins!");
+			}
+
+			m_goal += m_increment;
+			Debug.Log ("Goal is to make " + m_goal + " consoles!");
 
 			SceneManager.LoadScene (Random.Range (1, m_mapCount + 1));
 		}
@@ -48,8 +68,13 @@ public class GameManager : MonoBehaviour {
 		m_consoles++;
 	}
 
+	// May not be needed but putting this here just in case...
 	public void AddScore(int _player)
 	{
 		m_scores [_player] += 1;
+	}
+
+	public void SetTraitor(int _player) { // Have the player manager call this giving the playerID on level start
+		m_traitor = _player;
 	}
 }
