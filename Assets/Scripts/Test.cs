@@ -16,6 +16,6 @@ public class Test : MonoBehaviour {
 
     public void Click()
     {
-        Debug.Log("Button clicked");
+
     }
 }

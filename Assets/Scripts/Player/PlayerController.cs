@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
 
     Vector3 m_lastDirection;
     bool m_dashing;
-    bool m_inMenu;
+    public bool m_inMenu;
     int m_menuSelection;
     int m_maxMenuSelection;
     Button[] m_usedButtons;
@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
     public Camera m_camera;
     public Rigidbody m_rigidBody;
     public Transform m_graphicTransform;
+    public Transform m_holdTransform;
     public ParticleSystem m_dashParticles;
     public Button[] m_workerMenuButtons;
     public Button[] m_traitorMenuButtons;
@@ -67,7 +68,7 @@ public class PlayerController : MonoBehaviour
     public Text m_interact;
 
     // Machine and Item Integration variables
-    GameObject m_console;
+    public GameObject m_console;
     bool m_isInteracting;
     int m_timer;
 
@@ -101,13 +102,11 @@ public class PlayerController : MonoBehaviour
         if (m_playerType == PlayerType.Traitor)
         {
             m_maxMenuSelection = m_traitorMenuButtons.Length - 1;
-            Debug.Log(m_maxMenuSelection);
             m_usedButtons = m_traitorMenuButtons;
         }
         else
         {
             m_maxMenuSelection = m_workerMenuButtons.Length - 1;
-            Debug.Log(m_maxMenuSelection);
             m_usedButtons = m_workerMenuButtons;
         }
     }
@@ -116,10 +115,16 @@ public class PlayerController : MonoBehaviour
     {
         m_prevState = m_curState;
         m_curState = GamePad.GetState(m_pIndex);
-        
+
+        #region Movement
+
         if (!m_inMenu&&!m_stuned&&!m_shoved)
         {
             m_targetVelocity = new Vector3(m_curState.ThumbSticks.Left.X, 0, m_curState.ThumbSticks.Left.Y);
+        }
+        else if (m_inMenu)
+        {
+            m_targetVelocity = new Vector3(0, 0, 0);
         }
 
         if (m_stuned)
@@ -161,6 +166,8 @@ public class PlayerController : MonoBehaviour
         velocity.z = Mathf.Clamp(velocityChange.z, -1, 1);
 
         m_rigidBody.AddForce(velocityChange, ForceMode.VelocityChange);
+
+#endregion
 
         if (!m_inMenu)
         {
@@ -216,18 +223,65 @@ public class PlayerController : MonoBehaviour
         // Item carrying
         if (m_console != null)
         {
-            float distance = 0.5f;
+            Vector3 tempRay = m_graphicTransform.forward;
+            Debug.DrawRay(transform.position, tempRay * 1, new Color(1, 0, 0, 1));
+            RaycastHit hit;
 
-            m_console.GetComponent<Transform>().SetPositionAndRotation(gameObject.GetComponent<Transform>().position, Quaternion.Euler(m_graphicTransform.eulerAngles));
-            m_console.GetComponent<Transform>().Translate(new Vector3(0, 0, distance));
-
-            if (m_curState.Buttons.X == 0) // Drop carried item
+            if (m_curState.Buttons.A == ButtonState.Pressed && m_prevState.Buttons.A == ButtonState.Released && Physics.Raycast(transform.position, tempRay, out hit, 1)) // Drop carried item
             {
+                Debug.Log("Machine interaction");
+                if (hit.transform.tag == "Machine")
+                {
+                    if (hit.transform.gameObject.GetComponent<Machine>().AddItem(m_console, this))
+                    {
+                        m_console = null;
+                    }
+                }
+            }
+            else if (m_curState.Buttons.A == ButtonState.Pressed && m_prevState.Buttons.A == ButtonState.Released) // Drop carried item
+            {
+                m_console.transform.SetParent(null);
+                m_console.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                 m_console.GetComponent<Rigidbody>().useGravity = true;
+                m_console.GetComponent<BoxCollider>().enabled = true;
                 m_console = null;
             }
         }
+        else
+        {
+            Vector3 tempRay = m_graphicTransform.forward;
+            Debug.DrawRay(transform.position, tempRay * 1, new Color(1, 0, 0, 1));
+            if (m_curState.Buttons.A == ButtonState.Pressed && m_prevState.Buttons.A == ButtonState.Released) // Drop carried item
+            {
+                RaycastHit hit;
 
+                if (Physics.Raycast(transform.position, tempRay, out hit, 1))
+                {
+                    if (hit.transform.tag == "Crate")
+                    {
+                        m_console = hit.transform.gameObject.GetComponent<ItemCrate>().GetObject();
+                        m_console.transform.SetParent(m_holdTransform);
+                        m_console.GetComponent<Transform>().SetPositionAndRotation(m_holdTransform.position, Quaternion.Euler(m_graphicTransform.eulerAngles));
+                        m_console.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                        m_console.GetComponent<Rigidbody>().useGravity = false;
+                        m_console.GetComponent<BoxCollider>().enabled = false;
+                    }
+                    else if (hit.transform.tag == "Machine")
+                    {
+                        m_console = hit.transform.gameObject.GetComponent<Machine>().TakeObject();
+
+                        if (m_console)
+                        {
+                            m_console.transform.SetParent(m_holdTransform);
+                            m_console.GetComponent<Transform>().SetPositionAndRotation(m_holdTransform.position, Quaternion.Euler(m_graphicTransform.eulerAngles));
+                            m_console.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                            m_console.GetComponent<Rigidbody>().useGravity = false;
+                            m_console.GetComponent<BoxCollider>().enabled = false;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Machine and item integration
@@ -244,14 +298,14 @@ public class PlayerController : MonoBehaviour
         m_interact.text = "A - " + _message;
     }
 
-    public int GetNextStep()
+    public E_Step GetNextStep()
     {
         if (m_console != null)
         {
             return m_console.GetComponent<Item>().GetStep();
         }
 
-        return -1;
+        return 0;
     }
 
     void MenuSelection()
@@ -299,6 +353,7 @@ public class PlayerController : MonoBehaviour
             case E_Ability.e_Stun:
                 if (Time.time > m_stunCooldown)
                 {
+                    StartCoroutine(Vibrate(0.5f, 0.5f, 0.1f));
                     m_stunOtherPlayer = true;
                     m_stunCooldown = Time.time + 3;
                 }
@@ -306,6 +361,7 @@ public class PlayerController : MonoBehaviour
             case E_Ability.e_Shove:
                 if (Time.time > m_ShoveCooldown)
                 {
+                    StartCoroutine(Vibrate(0.5f, 0.5f, 0.1f));
                     m_shoveOtherPlayer = true;
                     m_ShoveCooldown = Time.time + 3;
                 }
@@ -320,8 +376,8 @@ public class PlayerController : MonoBehaviour
     }
 
     public int GetType() { return (int)m_playerType; }
-    public void TriggerStunned() { m_stuned = true; m_stunedTimer = Time.time + 3; }
-    public void TriggerShove(Vector3 _TraitorFacingDir) { m_shoveVelocity = new Vector3(_TraitorFacingDir.x * 2, 0, _TraitorFacingDir.z * 2); m_shoved = true; m_shovedTimer = Time.time + 0.2f; Debug.Log("Has Been shoved"); }
+    public void TriggerStunned() { m_stuned = true; m_stunedTimer = Time.time + 3; StartCoroutine(Vibrate(0.5f, 0.5f, 0.1f)); }
+    public void TriggerShove(Vector3 _TraitorFacingDir) { m_shoveVelocity = new Vector3(_TraitorFacingDir.x * 2, 0, _TraitorFacingDir.z * 2); m_shoved = true; m_shovedTimer = Time.time + 0.2f; StartCoroutine(Vibrate(0.5f, 0.5f, 0.1f)); }
 
     // Swiping
     private void OnTriggerStay(Collider other)
@@ -343,7 +399,6 @@ public class PlayerController : MonoBehaviour
         {
             if (m_stunOtherPlayer)
             {
-                Debug.Log("triggered stun");
                 other.GetComponent<PlayerController>().TriggerStunned();
                 m_stunOtherPlayer = false;
             }
@@ -358,24 +413,27 @@ public class PlayerController : MonoBehaviour
     public void SwitchToStun()
     {
         m_currentAbility = E_Ability.e_Stun;
-        Debug.Log("Switched to Stun");
     }
 
     public void SwitchToSabotage()
     {
         m_currentAbility = E_Ability.e_Sabotage;
-        Debug.Log("Switched to saba");
     }
 
     public void SwitchToShove()
     {
-        Debug.Log("Switched to Shove");
         m_currentAbility = E_Ability.e_Shove;
     }
 
     public void SwitchToMachineLocations()
     {
         m_currentAbility = E_Ability.e_SwitchMachines;
-        Debug.Log("Switched to switch machines");
+    }
+
+    IEnumerator Vibrate(float _leftStrength, float _rightStrength, float _length)
+    {
+        GamePad.SetVibration(m_pIndex, _leftStrength, _rightStrength);
+        yield return new WaitForSeconds(_length);
+        GamePad.SetVibration(m_pIndex, 0, 0);
     }
 }

@@ -1,23 +1,41 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using XInputDotNetPure;
 
 // Base class for machine
 
 public class Machine : MonoBehaviour {
     enum E_Status {e_working, e_broken };
-    public enum E_Type { t_gbProc, t_gbCase, t_dsProc, t_dsCase, t_switchProc, t_switchCase, t_colour };
 
-    public Mesh m_swapMesh;
-    public Material m_paintMat;
     public E_Type m_currType;
+    public E_Step m_step;
     public float m_processingTime;
-    public Vector3 m_partOffset;
 
     float m_timer;
     GameObject m_console;
     E_Status m_currentStatus;
     bool m_canInteract = false;
+    bool m_processing = false;
+    PlayerController m_controller;
+    bool m_skipFrame;
+
+    [Header("Objects")]
+    public GameObject m_product;
+    public Transform m_displayPos;
+
+    [Header("Interface")]
+    public Image m_progressBar;
+    public Image m_progressBarBack;
+
+    [Header("Colour Machine")]
+    public Color m_processingColour;
+    public Color m_green;
+    public Color m_red;
+    public Color m_blue;
+    public Color m_yellow;
+    public GameObject m_colourSelect;
 
     // Use this for initialization
     void Start () {
@@ -40,47 +58,90 @@ public class Machine : MonoBehaviour {
 
     void Working()
     {
-        // Do working stuff
-        if(m_console != null)
+        if (m_colourSelect != null && m_colourSelect.activeSelf && !m_skipFrame)
         {
-            Vector3 pos = gameObject.GetComponent<Transform>().position;
-            Quaternion ang = Quaternion.Euler(gameObject.GetComponent<Transform>().eulerAngles);
+            if (m_controller.m_curState.Buttons.X == ButtonState.Pressed && m_controller.m_prevState.Buttons.X == ButtonState.Released)
+            {
+                m_processingColour = m_blue;
+                m_controller.m_inMenu = false;
+                m_colourSelect.SetActive(false);
+                m_console.GetComponent<Item>().SetIsProcessing(true);
+                m_processing = true;
+                m_progressBar.enabled = true;
+                m_progressBarBack.enabled = true;
+            }
+            else if (m_controller.m_curState.Buttons.Y == ButtonState.Pressed && m_controller.m_prevState.Buttons.Y == ButtonState.Released)
+            {
+                m_processingColour = m_yellow;
+                m_controller.m_inMenu = false;
+                m_colourSelect.SetActive(false);
+                m_console.GetComponent<Item>().SetIsProcessing(true);
+                m_processing = true;
+                m_progressBar.enabled = true;
+                m_progressBarBack.enabled = true;
+            }
+            else if (m_controller.m_curState.Buttons.A == ButtonState.Pressed && m_controller.m_prevState.Buttons.A == ButtonState.Released)
+            {
+                m_processingColour = m_green;
+                m_controller.m_inMenu = false;
+                m_colourSelect.SetActive(false);
+                m_console.GetComponent<Item>().SetIsProcessing(true);
+                m_processing = true;
+                m_progressBar.enabled = true;
+                m_progressBarBack.enabled = true;
+            }
+            else if (m_controller.m_curState.Buttons.B == ButtonState.Pressed && m_controller.m_prevState.Buttons.B == ButtonState.Released)
+            {
+                m_processingColour = m_red;
+                m_controller.m_inMenu = false;
+                m_colourSelect.SetActive(false);
+                m_console.GetComponent<Item>().SetIsProcessing(true);
+                m_processing = true;
+                m_progressBar.enabled = true;
+                m_progressBarBack.enabled = true;
+            }
+        }
 
-            m_console.GetComponent<Transform>().SetPositionAndRotation(pos, ang);
-            m_console.GetComponent<Transform>().Translate(m_partOffset);
-            m_console.GetComponent<Transform>().Rotate(new Vector3(0, m_timer * 500.0f, 0));
+        // Do working stuff
+        if (m_console != null && m_processing)
+        {
+            m_console.GetComponent<Transform>().Rotate(new Vector3(0, Time.deltaTime * 50, 0));
 
             m_timer -= Time.deltaTime;
 
+            m_progressBar.fillAmount = 1 - (m_timer / m_processingTime);
+
             if(m_timer <= 0)
             {
-                m_console.GetComponent<Rigidbody>().useGravity = true;
-
-                if(m_currType != E_Type.t_colour) { m_console.GetComponent<MeshFilter>().mesh = m_swapMesh; } // Don't swap mesh for colouring
 
                 BoxCollider[] boxes = m_console.GetComponents<BoxCollider>();
 
-                if (m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_gbProc)
+                if (m_step == E_Step.s_processor)
                 {
-                    boxes[0].size = new Vector3(0.02f, 0.02f, 0.02f);
-                    boxes[1].size = new Vector3(0.12f, 0.12f, 0.12f);
+                    Destroy(m_console);
+                    m_console = Instantiate(m_product);
+                    m_console.transform.position = m_displayPos.position;
                 }
 
-                if(m_console.GetComponent<Item>().GetStep() == (int)E_Type.t_colour)
+                if (m_step == E_Step.s_case)
                 {
-                    m_console.GetComponent<Renderer>().material = m_paintMat;
+                    Destroy(m_console);
+                    m_console = Instantiate(m_product);
+                    m_console.transform.position = m_displayPos.position;
                 }
 
-                m_console.GetComponent<Transform>().localScale = new Vector3(14, 14, 14);
+                if (m_step == E_Step.s_colour)
+                {
+                    m_console.GetComponent<MeshRenderer>().material.color = m_processingColour;
+                }
 
-                m_console.GetComponent<Item>().AdvanceStep();
+                //m_console.GetComponent<Item>().AdvanceStep();
                 m_console.GetComponent<Item>().SetIsProcessing(false);
-                Debug.Log("Processing is done...");
-
-
-                m_console = null;
             }
         }
+
+        if (m_skipFrame)
+            m_skipFrame = false;
     }
 
     void Broken()
@@ -90,32 +151,74 @@ public class Machine : MonoBehaviour {
 
     private void OnTriggerStay(Collider other)
     {
-        GameObject collider = other.gameObject;
 
-        if (collider.GetComponent<PlayerController>() != null && m_currentStatus == E_Status.e_working)
+    }
+
+    public bool AddItem(GameObject _object, PlayerController _player)
+    {
+        if (m_console != null)
         {
-            // Debug.Log("Player can interact!");
-            m_canInteract = true;
+            return false;
+        }
 
-            if (collider.GetComponent<PlayerController>().GetNextStep() == (int)m_currType)
-            {
-                collider.GetComponent<PlayerController>().CanInteract("Interact");
+        if(_object.GetComponent<Item>().GetType() != m_currType && m_currType != E_Type.t_all)
+        {
+            return false;
+        }
 
-                if(collider.GetComponent<PlayerController>().IsInteracting())
-                {
-                    m_console = collider.GetComponent<PlayerController>().GetItem();
-                    collider.GetComponent<PlayerController>().SetItem(); // Set players item to null
+        switch (m_step)
+        {
+            case E_Step.s_processor:
+                if (_object.GetComponent<Item>().GetStep() != E_Step.s_raw) return false;
+                break;
+            case E_Step.s_case:
+                if (_object.GetComponent<Item>().GetStep() != E_Step.s_processor) return false;
+                break;
+            case E_Step.s_colour:
+                if (_object.GetComponent<Item>().GetStep() != E_Step.s_case) return false;
+                break;
+        }
 
-                    m_console.GetComponent<Item>().SetIsProcessing(true);
-                    m_console.GetComponent<Rigidbody>().useGravity = false;
+        m_console = _object;
 
-                    m_timer = m_processingTime;
-                }
-            }
+        m_console.transform.position = m_displayPos.position;
+        m_console.transform.SetParent(null);
+        m_timer = m_processingTime;
+        m_processing = false;
+
+        if (m_step == E_Step.s_colour)
+        {
+            m_skipFrame = true;
+            m_controller = _player;
+            m_controller.m_inMenu = true;
+            m_colourSelect.SetActive(true);
         }
         else
         {
-            m_canInteract = false;
+            m_console.GetComponent<Item>().SetIsProcessing(true);
+            m_processing = true;
+            m_progressBar.enabled = true;
+            m_progressBarBack.enabled = true;
+
+        }
+
+        return true;
+    }
+
+    public GameObject TakeObject()
+    {
+        if(m_console && m_timer <= 0)
+        {
+            m_progressBar.enabled = false;
+            m_progressBarBack.enabled = false;
+
+            GameObject temp = m_console;
+            m_console = null;
+            return temp;
+        }
+        else
+        {
+            return null;
         }
     }
 

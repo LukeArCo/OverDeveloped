@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum E_Step { s_raw, s_processor, s_case, s_colour, s_complete };
+public enum E_Type { t_all, t_raw, t_gb, t_ds, t_switch };
+
 public class Item : MonoBehaviour
 {
-    enum E_Step { s_gbProc, s_gbCase, s_dsProc, s_dsCase, s_switchProc, s_switchCase, s_colour, s_complete };
-    enum E_Type { t_gb, t_ds, t_switch };
 
-    E_Step nextStep;
+    public E_Step nextStep;
+    public E_Type m_type;
 
     bool isProcessing = false;
 
     void Awake()
     {
-        nextStep = E_Step.s_gbProc;
     }
 
     // Use this for initialization
@@ -28,56 +29,43 @@ public class Item : MonoBehaviour
 
     }
 
-    public int GetStep()
+    public E_Step GetStep()
     {
-        return (int)nextStep;
+        return nextStep;
     }
 
     public void AdvanceStep()
     {
-        if((int)nextStep % 2 == 0 && (int)nextStep < 6)
+        switch(nextStep)
         {
-            nextStep++;
+            case E_Step.s_raw:
+                nextStep = E_Step.s_processor;
+                break;
+            case E_Step.s_processor:
+                nextStep = E_Step.s_case;
+                break;
+            case E_Step.s_case:
+                nextStep = E_Step.s_colour;
+                break;
+            case E_Step.s_colour:
+                nextStep = E_Step.s_complete;
+                break;
         }
-        else if ((int)nextStep < 6) { nextStep = E_Step.s_colour; }
-        else { nextStep = E_Step.s_complete; }
     }
 
-    public void SetType(int _type)
+    public E_Type GetType()
     {
-        switch (_type)
-        {
-            case (int)E_Type.t_gb:
-                nextStep = E_Step.s_gbProc;
-                break;
-            case (int)E_Type.t_ds:
-                nextStep = E_Step.s_dsProc;
-                break;
-            case (int)E_Type.t_switch:
-                nextStep = E_Step.s_switchProc;
-                break;
-        }
+        return m_type;
+    }
 
+    public void SetType(E_Type _type)
+    {
+        m_type = _type;
     }
 
     private void OnTriggerStay(Collider other)
     {
-        GameObject collider = other.gameObject;
 
-        if (collider.GetComponent<PlayerController>() != null)
-        {
-
-            if (collider.GetComponent<PlayerController>().GetItem() == null && !isProcessing) // The player isn't carrying anything
-            {
-                collider.GetComponent<PlayerController>().CanInteract("Pick Up"); // Pickup indicator
-
-                if(collider.GetComponent<PlayerController>().IsInteracting()) // Player picks it up
-                {
-                    gameObject.GetComponent<Rigidbody>().useGravity = false; // Because fuck gravity, it messes carrying up
-                    collider.GetComponent<PlayerController>().SetItem(gameObject);
-                }
-            }
-        }
     }
 
     public bool IsProcessing() { return isProcessing; }
