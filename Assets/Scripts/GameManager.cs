@@ -11,6 +11,10 @@ public class GameManager : MonoBehaviour {
 	public int m_increment;
 	public int m_mapCount;
 
+	AudioSource m_sound;
+
+	public AudioClip[] m_bgm;
+
 	int[] m_scores = new int[4];
 
 	int m_consoles;
@@ -19,6 +23,10 @@ public class GameManager : MonoBehaviour {
 
 	void Awake() {
 		m_traitor = -1; // Set traitor to player 1 (0) by default
+
+		m_sound = GetComponent<AudioSource>();
+		m_sound.ignoreListenerVolume = true;
+
 		DontDestroyOnLoad (gameObject);
 	}
 
@@ -33,6 +41,11 @@ public class GameManager : MonoBehaviour {
 		// Debug.Log (m_timer);
 		if (m_traitor == -1) {
 			m_traitor = 0;
+
+			m_sound.Stop();
+			m_sound.clip = m_bgm[Random.Range (0, m_bgm.Length)];
+			m_sound.Play();
+
 			SceneManager.LoadScene (Random.Range (1, m_mapCount + 1));
 			return;
 		}
@@ -58,6 +71,10 @@ public class GameManager : MonoBehaviour {
 
 			m_goal += m_increment;
 			Debug.Log ("Goal is to make " + m_goal + " consoles!");
+
+			m_sound.Stop();
+			m_sound.clip = m_bgm[Random.Range (0, m_bgm.Length)];
+			m_sound.Play();
 
 			SceneManager.LoadScene (Random.Range (1, m_mapCount + 1));
 		}
